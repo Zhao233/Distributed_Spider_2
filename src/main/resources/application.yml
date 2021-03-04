@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: demo
+
+server:
+  port: 8080
+
+zookeeper:
+  address: localhost:2181
+  timeout: 5000
+
+  machine_id: 1
+  lock_path: /spider/lock
