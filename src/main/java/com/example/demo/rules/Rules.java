@@ -93,12 +93,12 @@ public class Rules {
 
         switch (current_rule){
             case RUlE_MASTER:
-                zkClient.setData(nodes_path+"/"+machine_id, "master".getBytes(),1);
+                zkClient.setData(nodes_path+"/"+machine_id, "master".getBytes(),-1);
 
                 break;
 
             case RUlE_SALVE:
-                zkClient.setData(nodes_path+"/"+machine_id, "slave".getBytes(),1);
+                zkClient.setData(nodes_path+"/"+machine_id, "slave".getBytes(),-1);
                 break;
         }
     }

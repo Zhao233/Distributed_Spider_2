@@ -17,9 +17,11 @@ public class NodeManagement {
     @Value("${zookeeper.nodes_path}")
     public String nodes_path;
 
-    public List<Node> get_all_slaves() throws KeeperException, InterruptedException {
-         List<String> child_list = zkClient.getChildren(nodes_path,null);
-         List<Node> nodes = new LinkedList<>();
+    List<Node> nodes = null;
+
+    public LinkedList<Node> get_all_slaves() throws KeeperException, InterruptedException {
+        List<String> child_list = zkClient.getChildren(nodes_path,null);
+        LinkedList<Node> nodes = new LinkedList<>();
 
          for (String temp : child_list){
              byte[] data = zkClient.getData(nodes_path+"/"+temp,null, null);
@@ -33,8 +35,10 @@ public class NodeManagement {
          return nodes;
     }
 
-    public boolean is_slave_alive(int machine_id) throws KeeperException, InterruptedException {
+    public boolean is_slave_alive(String machine_id) throws KeeperException, InterruptedException {
         return zkClient.exists(nodes_path+"/"+machine_id, null) != null;
     }
 
+    public void get_one_machine(){
+    }
 }
