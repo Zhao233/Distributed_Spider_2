@@ -11,3 +11,5 @@ zookeeper:
 
   machine_id: 1
   lock_path: /spider/lock
+  nodes_path: /spider/nodes
+  master_path: /spider/master

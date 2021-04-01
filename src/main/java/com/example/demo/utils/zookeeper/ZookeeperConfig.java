@@ -40,7 +40,6 @@ public class ZookeeperConfig {
                     if(Event.KeeperState.SyncConnected==watchedEvent.getState()){
                         //如果收到了服务端的响应事件,连接成功
                         countDownLatch.countDown();
-
                     }
                 }
             });
