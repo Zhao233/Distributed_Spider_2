@@ -3,7 +3,6 @@ package com.example.demo.rules.master.Job;
 import com.example.demo.rules.master.Nodes.Node;
 import com.example.demo.rules.master.Nodes.NodeManagement;
 import com.example.demo.utils.kafka.Producer;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.gson.Gson;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,6 @@ public class JobManagement {
 
     LinkedList<Job> jobs;
     LinkedList<Job> processing = new LinkedList<>();
-
 
     public void register_jobs(List<Job> jobs){
         this.jobs.addAll(jobs);
