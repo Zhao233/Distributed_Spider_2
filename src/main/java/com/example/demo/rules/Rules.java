@@ -1,12 +1,15 @@
 package com.example.demo.rules;
 
 import com.example.demo.utils.zookeeper.lock.Imp.BaseDistributedLock;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -15,7 +18,9 @@ import java.util.List;
 import static java.lang.System.exit;
 
 @Component
-public class Rules {
+@Slf4j
+@Configuration
+public class Rules implements InitializingBean {
     @Autowired
     BaseDistributedLock lock;
 
@@ -27,10 +32,10 @@ public class Rules {
     public static final int RUlE_OBSERVER = 3;
 
     // 默认角色为observer
-    public int current_rule = 3;
+    public static int current_rule = 3;
     public String current_path = "";
 
-    @Value("${zookeeper.machine_id}")
+    @Value("${machine_id}")
     public String machine_id;
 
     @Value("${zookeeper.nodes_path}")
@@ -39,7 +44,9 @@ public class Rules {
     @Value("${zookeeper.master_path}")
     private String master_path;
 
-    public void changeRule(int rule){
+    public static void changeRule(int rule){
+        System.setProperty("rule", String.valueOf(rule));
+
         current_rule = rule;
     }
 
@@ -51,6 +58,7 @@ public class Rules {
     public void register_machine() throws KeeperException, InterruptedException {
         //检查machine_id是否唯一
         if(check_is_machine_id_exist()){
+            log.info("machine_id已存在!!!");
             exit(-1);
         }
 
@@ -101,5 +109,10 @@ public class Rules {
                 zkClient.setData(nodes_path+"/"+machine_id, "slave".getBytes(),-1);
                 break;
         }
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        register_machine();
     }
 }

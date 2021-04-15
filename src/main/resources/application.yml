@@ -3,7 +3,7 @@ spring:
     name: demo
 
   kafka:
-    bootstrap-servers: 172.101.203.33:9092
+    bootstrap-servers: 49.232.133.15:9092
     producer:
       # 发生错误后，消息重发的次数。
       retries: 0
@@ -32,6 +32,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       # 值的反序列化方式
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: test-consumer-group
     listener:
       # 在侦听器容器中运行的线程数。
       concurrency: 5
@@ -42,11 +43,26 @@ spring:
 server:
   port: 8080
 
+machine_id: 1
+topic: 999
+rule: 3
+
 zookeeper:
-  address: localhost:2181
+  address: 49.232.133.15:2181
   timeout: 5000
 
-  machine_id: 1
   lock_path: /spider/lock
   nodes_path: /spider/nodes
   master_path: /spider/master
+
+async:
+    executor:
+      thread:
+        core_pool_size: 5
+        # 配置最大线程数
+        max_pool_size: 5
+        # 配置队列大小
+        queue_capacity: 99999
+  # 配置线程池中的线程的名称前缀
+        name:
+          prefix: async-service-

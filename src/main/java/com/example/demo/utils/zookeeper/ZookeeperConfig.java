@@ -24,7 +24,7 @@ public class ZookeeperConfig {
     @Value("${zookeeper.timeout}")
     private  int timeout;
 
-    @Value("${zookeeper.machine_id}")
+    @Value("${machine_id}")
     public void setMachineId(int id) {
         ZookeeperConfig.machine_id = id;
     }

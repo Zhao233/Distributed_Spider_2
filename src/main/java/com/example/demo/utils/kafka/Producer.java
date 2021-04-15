@@ -15,7 +15,7 @@ public class Producer {
     @Autowired
     KafkaTemplate<String, Object> kafkaTemplate;
 
-    public void sen_job(String machine_id, String job_String){
+    public void send_job(String machine_id, String job_String){
         ListenableFuture<SendResult<String, Object>> future = kafkaTemplate.send(machine_id, job_String);
         future.addCallback(new ListenableFutureCallback<SendResult<String, Object>>() {
             @Override

@@ -20,13 +20,30 @@ public class JobManagement {
     @Autowired
     Producer producer;
 
-    LinkedList<Job> jobs;
-    LinkedList<Job> processing = new LinkedList<>();
+    //待处理列表
+    static LinkedList<Job> jobs = new LinkedList<>();
 
-    public void register_jobs(List<Job> jobs){
-        this.jobs.addAll(jobs);
+    //处理列表
+    static LinkedList<Job> processing = new LinkedList<>();
+
+    //在任务开始时，将需要处理的任务的index范围加到待处理列表中
+    public void add_jobs(int index_start, int index_end){
+        int start = index_start, end = index_start;
+
+        while(end <= index_end){
+            if( end == 10 || end == index_end ){
+                Job job = new Job(start, end, -1, Job.STATUS_UNALLOCATED);
+
+                jobs.add(job);
+
+                start = end+1;
+            }
+
+            end++;
+        }
     }
 
+    // 分配任务
     public void distribute_jobs() throws KeeperException, InterruptedException {
         Random random = new Random();
         LinkedList<Node> nodes = nodeManagement.get_all_slaves();
@@ -45,6 +62,7 @@ public class JobManagement {
         }
     }
 
+    // 将具体任务分配到机器
     public boolean distribute_job_to_machine(Job job, Node node){
         Gson gson = new Gson();
 
@@ -54,8 +72,10 @@ public class JobManagement {
             //再次判断机器是否存活，存活后将发出指令
             //缺点：若发送后died？
             if( nodeManagement.is_slave_alive(node.getMachine_id()) ){
+                // 将处理结点的id赋予job
+                job.machine_id = Integer.parseInt(node.getMachine_id());
 
-                producer.sen_job(node.getMachine_id(), node.getMachine_id());
+                producer.send_job(node.getMachine_id(), node.getMachine_id());
 
                 return true;
             }

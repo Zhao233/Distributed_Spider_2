@@ -1,4 +1,4 @@
-package com.example.demo.rules.master.Job;
+package com.example.demo.rules.slave.Job;
 
 public class Job {
     public int id;

@@ -17,8 +17,6 @@ public class NodeManagement {
     @Value("${zookeeper.nodes_path}")
     public String nodes_path;
 
-    List<Node> nodes = null;
-
     public LinkedList<Node> get_all_slaves() throws KeeperException, InterruptedException {
         List<String> child_list = zkClient.getChildren(nodes_path,null);
         LinkedList<Node> nodes = new LinkedList<>();
