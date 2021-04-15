@@ -12,15 +12,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 
 import static java.lang.System.exit;
 
 @Component
 @Slf4j
-@Configuration
-public class Rules implements InitializingBean {
+public class Rules {
     @Autowired
     BaseDistributedLock lock;
 
@@ -109,10 +107,5 @@ public class Rules implements InitializingBean {
                 zkClient.setData(nodes_path+"/"+machine_id, "slave".getBytes(),-1);
                 break;
         }
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        register_machine();
     }
 }
