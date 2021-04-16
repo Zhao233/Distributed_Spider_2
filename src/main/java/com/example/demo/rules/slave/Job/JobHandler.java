@@ -30,4 +30,9 @@ public class JobHandler {
 
         return done;
     }
+
+    //接收master发送的任务
+    public void get_job_from_master(Job job){
+        un_processed.add(job);
+    }
 }

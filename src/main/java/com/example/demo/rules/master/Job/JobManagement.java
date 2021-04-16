@@ -4,15 +4,19 @@ import com.example.demo.rules.master.Nodes.Node;
 import com.example.demo.rules.master.Nodes.NodeManagement;
 import com.example.demo.utils.kafka.Producer;
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
 @Component
+@Slf4j
 public class JobManagement {
     @Autowired
     NodeManagement nodeManagement;
@@ -20,19 +24,28 @@ public class JobManagement {
     @Autowired
     Producer producer;
 
+    @Autowired
+    JobIdGenerator jobIdGenerator;
+
     //待处理列表
-    static LinkedList<Job> jobs = new LinkedList<>();
+    public static LinkedList<Job> jobs = new LinkedList<>();
 
     //处理列表
-    static LinkedList<Job> processing = new LinkedList<>();
+    public static LinkedList<Job> processing = new LinkedList<>();
+
+    //记录id与
+    public static HashMap<String, Job> index_map = new HashMap<>();
 
     //在任务开始时，将需要处理的任务的index范围加到待处理列表中
     public void add_jobs(int index_start, int index_end){
-        int start = index_start, end = index_start;
+        log.info("-------------- "+ "init job" +" --------------");
+
+        int start = index_start, end = index_start+1;
 
         while(end <= index_end){
-            if( end == 10 || end == index_end ){
+            if( end % 10 == 0 || end >= index_end ){
                 Job job = new Job(start, end, -1, Job.STATUS_UNALLOCATED);
+                job.id = jobIdGenerator.getGeneratID();
 
                 jobs.add(job);
 
@@ -41,21 +54,25 @@ public class JobManagement {
 
             end++;
         }
+
+        log.info("-------------- "+ "init job complete" +" --------------");
     }
 
     // 分配任务
+    @Async("asyncServiceExecutor")
     public void distribute_jobs() throws KeeperException, InterruptedException {
         Random random = new Random();
-        LinkedList<Node> nodes = nodeManagement.get_all_slaves();
 
         while(!jobs.isEmpty()){
             Job job = jobs.getFirst();
 
             //随机挑选一个结点，发送任务
             //改进：应根据结点状态，忙碌情况来分配任务
-            if( distribute_job_to_machine(job, nodes.get(random.nextInt(nodes.size())) ) ){
+            if( distribute_job_to_machine(job, nodeManagement.random_picK_slave()) ){
+
                 //将任务从任务列表中移除，并放入处理中的队列
                 processing.add(jobs.pop());
+                index_map.put(String.valueOf(job.id), job);
             } else {
                 continue;
             }
@@ -66,7 +83,7 @@ public class JobManagement {
     public boolean distribute_job_to_machine(Job job, Node node){
         Gson gson = new Gson();
 
-        String string = gson.toJson(job);
+        String string_job = gson.toJson(job);
 
         try {
             //再次判断机器是否存活，存活后将发出指令
@@ -75,7 +92,11 @@ public class JobManagement {
                 // 将处理结点的id赋予job
                 job.machine_id = Integer.parseInt(node.getMachine_id());
 
-                producer.send_job(node.getMachine_id(), node.getMachine_id());
+                log.info("-------------- " + "send job: " + string_job + " to: " + node.machine_id + " --------------");
+
+                producer.send_job(node.getMachine_id(), string_job);
+
+                log.info("-------------- " + "send job: " + string_job + " complete " + " --------------");
 
                 return true;
             }
@@ -88,5 +109,16 @@ public class JobManagement {
 
         return false;
 
+    }
+
+    // 接收slave发送的任务完成情况
+    public void get_complement_info(String job_id){
+        log.info("-------------- job_id: "+ job_id + " complete" +" --------------");
+        Job job = index_map.get(job_id);
+
+        processing.remove(job);
+        index_map.remove(job_id);
+
+        log.info("-------------- job_id: "+ job_id + " remove from processing list" +" --------------");
     }
 }

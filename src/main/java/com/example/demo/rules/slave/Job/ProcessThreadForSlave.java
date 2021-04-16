@@ -1,5 +1,9 @@
 package com.example.demo.rules.slave.Job;
 
+import com.example.demo.db.WeiBoDao;
+import com.example.demo.rules.slave.Spider.SpiderContent;
+import com.example.demo.utils.kafka.Producer;
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -12,6 +16,14 @@ import java.io.IOException;
 public class ProcessThreadForSlave {
     @Autowired
     JobHandler handler;
+
+//    @Autowired
+//    WeiBoDao weiBoDao;
+
+    @Autowired
+    Producer producer;
+
+    Gson gson = new Gson();
 
     @Async("asyncServiceExecutor")
     // 时时检查未处理队列，如果存在未处理数据，处理
@@ -37,7 +49,13 @@ public class ProcessThreadForSlave {
         while( !JobHandler.processed.isEmpty() ){
             Job_done done = JobHandler.processed.pop();
 
+            //将一个已完成任务中的爬取内容保存
+            for(SpiderContent temp : done.getContents()) {
+                //weiBoDao.save(temp);
+            }
 
+            //通知master更新完成情况
+            producer.send("job_"+done.job.machine_id, String.valueOf(done.job.id));
         }
     }
 
