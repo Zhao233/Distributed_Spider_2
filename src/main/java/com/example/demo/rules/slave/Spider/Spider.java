@@ -13,7 +13,7 @@ import java.util.Random;
 
 @Component
 public class Spider {
-    String base = "https://s.weibo.com/weibo/%25E7%25BE%25A4%25E4%25BD%2593%25E5%2585%258D%25E7%2596%25AB?topnav=1&wvr=6";
+    String base = "https://s.weibo.com/weibo?q=疫苗接种&wvr=6&Refer=SWeibo_box";
 
     String cookie = "SINAGLOBAL=4380708593471.6206.1587122404400; _ga=GA1.2.1638985386.1592474447; wvr=6; wb_view_log=1368*9122; un=17610829296; wb_view_log_7460697407=1368*9122; Ugrow-G0=589da022062e21d675f389ce54f2eae7; ALF=1624533454; SSOLoginState=1592997455; SCF=ArsRkvs-oW_Gx9WsvBDPnSDs0CTIdKc70XBBSJnlg2I_kGq8iyzx30kZzt6ZAp9gNTA_PCJB4Qyts68cd-NQBoo.; SUB=_2A25z90YfDeRhGeFK7VIX-SnIyzuIHXVQhTDXrDV8PUNbmtANLXH9kW9NQyVU5k2j77f7BJjq-rlumW5cAjaeEZwW; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WW34FahFbdeXNLqlH4D_lqX5JpX5KzhUgL.FoMXSo5c1KMXehM2dJLoIp7LxKML1KBLBKnLxKqL1hnLBoM7SKMpeKMNeoM7; SUHB=0ebtliFkdNKe4G; YF-V5-G0=260e732907e3bd813efaef67866e5183; _s_tentry=login.sina.com.cn; UOR=tech.ifeng.com,widget.weibo.com,login.sina.com.cn; Apache=958512678254.0354.1592997461066; ULV=1592997461171:17:9:3:958512678254.0354.1592997461066:1592981180834; WBtopGlobal_register_version=fd6b3a12bb72ffed; webim_unReadCount=%7B%22time%22%3A1592999626831%2C%22dm_pub_total%22%3A1%2C%22chat_group_client%22%3A0%2C%22chat_group_notice%22%3A0%2C%22allcountNum%22%3A49%2C%22msgbox%22%3A0%7D; YF-Page-G0=95d69db6bf5dfdb71f82a9b7f3eb261a|1592999671|1592999671";
 

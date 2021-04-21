@@ -27,7 +27,7 @@ public class ProcessThreadForSlave {
 
     @Async("asyncServiceExecutor")
     // 时时检查未处理队列，如果存在未处理数据，处理
-    public void process_jobs_in_un_processed_list() throws IOException {
+    public void process_jobs_in_un_processed_list() throws IOException, InterruptedException {
         // 判断是否为空
         while(!JobHandler.un_processed.isEmpty()){
             Job job = JobHandler.un_processed.pop();

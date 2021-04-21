@@ -61,14 +61,25 @@ public class JobManagement {
     // 分配任务
     @Async("asyncServiceExecutor")
     public void distribute_jobs() throws KeeperException, InterruptedException {
-        Random random = new Random();
 
         while(!jobs.isEmpty()){
             Job job = jobs.getFirst();
 
             //随机挑选一个结点，发送任务
             //改进：应根据结点状态，忙碌情况来分配任务
-            if( distribute_job_to_machine(job, nodeManagement.random_picK_slave()) ){
+            Node node = nodeManagement.random_picK_slave();
+
+            //Node node = new Node("5");
+
+            if (node == null){
+                continue;
+            }
+
+            log.info("-------------- " + "picked node: "+ node.machine_id + "-------------- ");
+
+            if( distribute_job_to_machine(job, node) ){
+
+                log.info("-------------- " + "distribute job to machine: "+ node.machine_id + "-------------- ");
 
                 //将任务从任务列表中移除，并放入处理中的队列
                 processing.add(jobs.pop());
@@ -80,12 +91,11 @@ public class JobManagement {
     }
 
     // 将具体任务分配到机器
-    public boolean distribute_job_to_machine(Job job, Node node){
+    public boolean distribute_job_to_machine(Job job, Node node) throws KeeperException, InterruptedException {
         Gson gson = new Gson();
 
         String string_job = gson.toJson(job);
 
-        try {
             //再次判断机器是否存活，存活后将发出指令
             //缺点：若发送后died？
             if( nodeManagement.is_slave_alive(node.getMachine_id()) ){
@@ -100,12 +110,6 @@ public class JobManagement {
 
                 return true;
             }
-
-        } catch (KeeperException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         return false;
 

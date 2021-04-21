@@ -29,29 +29,29 @@ public class Consumer {
 
     Gson gson = new Gson();
 
-    @KafkaListener(topics = "#{'${topic}'}")
-    public void listen(ConsumerRecord<?, ?> record) {
-        Optional<?> kafkaMessage = Optional.ofNullable(record.value());
-        if (kafkaMessage.isPresent()) {
-            Object message = kafkaMessage.get();
-
-            log.info("------------------ get job =" + message.toString());
-
-            if ( Rules.current_rule == Rules.RUlE_MASTER ){
-                String job_id = message.toString();
-
-                jobManagement.get_complement_info(job_id);
-
-                return;
-            }
-
-            if( Rules.current_rule == Rules.RUlE_SALVE ){
-                Job job = gson.fromJson(message.toString(), Job.class);
-
-                jobHandler.get_job_from_master(job);
-
-                return;
-            }
-        }
-    }
+//    @KafkaListener(topics = "#{'${topic}'}")
+//    public void listen(ConsumerRecord<?, ?> record) {
+//        Optional<?> kafkaMessage = Optional.ofNullable(record.value());
+//        if (kafkaMessage.isPresent()) {
+//            Object message = kafkaMessage.get();
+//
+//            log.info("------------------ get job =" + message.toString());
+//
+//            if ( Rules.current_rule == Rules.RUlE_MASTER ){
+//                String job_id = message.toString();
+//
+//                jobManagement.get_complement_info(job_id);
+//
+//                return;
+//            }
+//
+//            if( Rules.current_rule == Rules.RUlE_SALVE ){
+//                Job job = gson.fromJson(message.toString(), Job.class);
+//
+//                jobHandler.get_job_from_master(job);
+//
+//                return;
+//            }
+//        }
+//    }
 }

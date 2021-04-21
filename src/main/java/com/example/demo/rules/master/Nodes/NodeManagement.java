@@ -1,14 +1,22 @@
 package com.example.demo.rules.master.Nodes;
 
+import lombok.Synchronized;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 
 @Component
+@Slf4j
 public class NodeManagement {
     @Autowired
     ZooKeeper zkClient;
@@ -16,9 +24,8 @@ public class NodeManagement {
     @Value("${zookeeper.nodes_path}")
     public String nodes_path;
 
-    public Random random;
-
     // 所有可工作的slave
+    // 需要加锁
     public static LinkedList<Node> nodes = new LinkedList<>();
 
     // 记录所有slave的machine_id与在工作slave队列中的node的对应关系
@@ -44,7 +51,25 @@ public class NodeManagement {
         return zkClient.exists(nodes_path+"/"+machine_id, null) != null;
     }
 
+    public void addWatcher(String path){
+        CustomWatcher watcher = new CustomWatcher(path);
+
+        try {
+            zkClient.getChildren(path, watcher);
+        } catch (KeeperException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     public Node random_picK_slave(){
+        Random random = new Random();
+
+        if(nodes.size() == 0){
+            return null;
+        }
+
         return nodes.get(random.nextInt(nodes.size()));
     }
 
@@ -55,9 +80,74 @@ public class NodeManagement {
         nodes.add(node);
         nodes_index_map.put(machine_id, node);
     }
+
     public void removeSlave(String machine_id){
         nodes.remove(nodes_index_map.get(machine_id));
         nodes_index_map.remove(machine_id);
     }
 
+    //监听器
+    class CustomWatcher implements Watcher{
+        String path;
+
+        CustomWatcher(String path){
+            this.path = path;
+        }
+
+        @Override
+        @Synchronized
+        public void process(WatchedEvent watchedEvent) {
+            CustomWatcher watcher = new CustomWatcher(path);
+
+            List<String> child;
+
+            log.info("=============================== event create ==========================");
+
+            try {
+                child = zkClient.getChildren(path, watcher);
+                LinkedList<Node> temp_nodes = (LinkedList<Node>) nodes.clone();
+
+                HashMap<String, String> map = new HashMap<>();
+
+                for(String temp : child){
+                    map.put(temp, temp);
+                }
+
+                for(Node node : temp_nodes){
+                    String ret = map.get(node.getMachine_id());
+
+                    //node被删除了
+                    if(ret == null){
+                        nodes.remove(node);
+                        nodes_index_map.remove(node.getMachine_id());
+
+                        log.info("=============================== 删除节点 " + node.getMachine_id() + "==========================");
+
+                    }
+                }
+
+                for(String temp : child){
+                    Node node_ = nodes_index_map.get(temp);
+
+                    //新增加了node
+                    if(node_ == null){
+                        Node node = new Node(temp);
+
+                        nodes.add( node );
+                        nodes_index_map.put(temp, node);
+
+                        log.info("=============================== 新增节点 " + node.getMachine_id() + "==========================");
+
+                    }
+                }
+
+
+            } catch (KeeperException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
+

@@ -23,7 +23,7 @@ public class JobHandler {
 
     //处理未处理数据，并将数据发送到爬虫端，返回爬取后的数据
     //@Async("asyncServiceExecutor")
-    public Job_done decode_job_and_send_to_spider(Job job) throws IOException {
+    public Job_done decode_job_and_send_to_spider(Job job) throws IOException, InterruptedException {
         LinkedList<SpiderContent> ret = spider.crawling_data(job.start, job.end);
 
         Job_done done = new Job_done(job, ret);

@@ -82,6 +82,7 @@ public class Rules {
         }
     }
 
+    //选举master
     public void elect_leader() throws Exception {
         lock.acquire();
 
@@ -89,6 +90,9 @@ public class Rules {
             changeRule(RUlE_SALVE);
         } else {
             zkClient.create(master_path+"/"+machine_id, machine_id.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+
+            //将自己从slaves中删去
+            zkClient.delete(nodes_path+"/"+machine_id,-1);
 
             changeRule(RUlE_MASTER);
         }
@@ -99,7 +103,7 @@ public class Rules {
 
         switch (current_rule){
             case RUlE_MASTER:
-                zkClient.setData(nodes_path+"/"+machine_id, "master".getBytes(),-1);
+                //zkClient.setData(nodes_path+"/"+machine_id, "master".getBytes(),-1);
 
                 break;
 

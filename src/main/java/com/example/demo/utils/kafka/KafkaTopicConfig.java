@@ -1,6 +1,7 @@
 package com.example.demo.utils.kafka;
 
 import com.example.demo.rules.Rules;
+import com.example.demo.rules.master.Nodes.NodeManagement;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +13,12 @@ public class KafkaTopicConfig implements InitializingBean {
     @Value("${machine_id}")
     public String machine_id;
 
+
+
     @Autowired
     Rules rules;
+
+
 
     @Override
     public void afterPropertiesSet() throws KeeperException, InterruptedException {
@@ -26,6 +31,8 @@ public class KafkaTopicConfig implements InitializingBean {
         // 如果角色为slave，监测kafka中 job_<machine_id>的信息
         if( Rules.current_rule == Rules.RUlE_SALVE){
             System.setProperty("topic", "job_"+machine_id);
+
+
         }
 
         if( Rules.current_rule == Rules.RUlE_MASTER ){

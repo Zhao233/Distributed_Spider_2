@@ -49,7 +49,7 @@ rule: 3
 
 zookeeper:
   address: 49.232.133.15:2181
-  timeout: 5000
+  timeout: 10000
 
   lock_path: /spider/lock
   nodes_path: /spider/nodes
