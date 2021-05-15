@@ -1,5 +1,6 @@
 package com.example.demo.rules.master.Nodes;
 
+import com.example.demo.rules.master.Job.JobManagement;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.KeeperException;
@@ -20,6 +21,9 @@ import java.util.Random;
 public class NodeManagement {
     @Autowired
     ZooKeeper zkClient;
+
+    @Autowired
+    JobManagement jobManagement;
 
     @Value("${zookeeper.nodes_path}")
     public String nodes_path;
@@ -117,11 +121,22 @@ public class NodeManagement {
                     String ret = map.get(node.getMachine_id());
 
                     //node被删除了
+                    // 1. 从节点列表中删除对应节点
+                    // 2. 将对应的任务列表中的任务重新分配 （未完成）
                     if(ret == null){
+                        // 1
                         nodes.remove(node);
                         nodes_index_map.remove(node.getMachine_id());
 
                         log.info("=============================== 删除节点 " + node.getMachine_id() + "==========================");
+
+                        // 2
+                        LinkedList<String> job_ids = (LinkedList<String>) node.getProcessing_job_id_list().clone();
+
+                        jobManagement.remove_jobs_from_job_list(node);
+                        jobManagement.re_distribute_jobs(job_ids);
+
+                        log.info("=============================== 节点任务重分配 " + node.getMachine_id() + "==========================");
 
                     }
                 }
@@ -137,10 +152,8 @@ public class NodeManagement {
                         nodes_index_map.put(temp, node);
 
                         log.info("=============================== 新增节点 " + node.getMachine_id() + "==========================");
-
                     }
                 }
-
 
             } catch (KeeperException e) {
                 e.printStackTrace();

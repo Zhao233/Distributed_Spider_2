@@ -46,6 +46,7 @@ server:
 machine_id: 1
 topic: 999
 rule: 3
+cookie: UOR=www.solidot.org,widget.weibo.com,blog.csdn.net; SINAGLOBAL=2432030156555.166.1614309795477; ULV=1620984142500:3:1:1:1968716020053.9788.1620984142495:1618538546989; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WWH8sZgENHoUiMErIEu-kal5JpX5KzhUgL.Fo-RS0n0e0.N1hz2dJLoI7UDdPDReKnc; SUB=_2A25Nm_jJDeRhGeNG7FoS8yfLwz6IHXVu0W0BrDV8PUNbmtAKLXeskW9NSxcGzzpNJyogkvXKJGAhoK8dK1bPhqnV; login_sid_t=08cb0ed264e9b597944d80c067d443e5; cross_origin_proto=SSL; _s_tentry=www.baidu.com; Apache=1968716020053.9788.1620984142495; ALF=1652603926; SSOLoginState=1621067926; wvr=6; webim_unReadCount=%7B%22time%22%3A1620984485905%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0%2C%22chat_group_notice%22%3A0%2C%22allcountNum%22%3A51%2C%22msgbox%22%3A0%7D; wb_view_log_5878339782=1368*9122
 
 zookeeper:
   address: 49.232.133.15:2181

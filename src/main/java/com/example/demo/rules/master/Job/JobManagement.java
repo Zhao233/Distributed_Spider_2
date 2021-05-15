@@ -12,8 +12,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
 
 @Component
 @Slf4j
@@ -33,8 +31,26 @@ public class JobManagement {
     //处理列表
     public static LinkedList<Job> processing = new LinkedList<>();
 
-    //记录id与
-    public static HashMap<String, Job> index_map = new HashMap<>();
+    // job_id 与 job的映射关系
+    public static HashMap<String, Job> index_map_processing = new HashMap<String, Job>();
+
+    public void add_job_to_processing(Job job, Node node){
+        processing.add(job);
+        index_map_processing.put(job.id, job);
+        node.add_processing_job_id(job.id);
+    }
+
+    public void remove_job_from_processing(Job job){
+        //从处理列表中移除id
+        processing.remove(job);
+
+        //移除映射关系
+        index_map_processing.remove(job.id );
+
+        //移除对应节点保存的待处理的列表
+        Node node = NodeManagement.nodes_index_map.get( job.machine_id );
+        node.remove_processing_job_id(job.id);
+    }
 
     //在任务开始时，将需要处理的任务的index范围加到待处理列表中
     public void add_jobs(int index_start, int index_end){
@@ -45,11 +61,11 @@ public class JobManagement {
         while(end <= index_end){
             if( end % 10 == 0 || end >= index_end ){
                 Job job = new Job(start, end, -1, Job.STATUS_UNALLOCATED);
-                job.id = jobIdGenerator.getGeneratID();
+                job.id = String.valueOf(jobIdGenerator.getGeneratID());
 
                 jobs.add(job);
 
-                start = end+1;
+                start = end + 1;
             }
 
             end++;
@@ -65,6 +81,11 @@ public class JobManagement {
         while(!jobs.isEmpty()){
             Job job = jobs.getFirst();
 
+            if (NodeManagement.nodes.isEmpty()){
+                log.info("-------------- 无可工作节点 -------------- ");
+                Thread.sleep(1000);
+            }
+
             //随机挑选一个结点，发送任务
             //改进：应根据结点状态，忙碌情况来分配任务
             Node node = nodeManagement.random_picK_slave();
@@ -78,12 +99,14 @@ public class JobManagement {
             log.info("-------------- " + "picked node: "+ node.machine_id + "-------------- ");
 
             if( distribute_job_to_machine(job, node) ){
+                // removeable
+                Thread.sleep(2000);
 
                 log.info("-------------- " + "distribute job to machine: "+ node.machine_id + "-------------- ");
 
                 //将任务从任务列表中移除，并放入处理中的队列
-                processing.add(jobs.pop());
-                index_map.put(String.valueOf(job.id), job);
+
+                add_job_to_processing(jobs.pop(), node);
             } else {
                 continue;
             }
@@ -94,17 +117,17 @@ public class JobManagement {
     public boolean distribute_job_to_machine(Job job, Node node) throws KeeperException, InterruptedException {
         Gson gson = new Gson();
 
+        // 将处理结点的id赋予job
+        job.machine_id = Integer.parseInt(node.getMachine_id());
+
         String string_job = gson.toJson(job);
 
             //再次判断机器是否存活，存活后将发出指令
             //缺点：若发送后died？
             if( nodeManagement.is_slave_alive(node.getMachine_id()) ){
-                // 将处理结点的id赋予job
-                job.machine_id = Integer.parseInt(node.getMachine_id());
-
                 log.info("-------------- " + "send job: " + string_job + " to: " + node.machine_id + " --------------");
 
-                producer.send_job(node.getMachine_id(), string_job);
+                producer.send_job("job_"+node.getMachine_id(), string_job);
 
                 log.info("-------------- " + "send job: " + string_job + " complete " + " --------------");
 
@@ -117,12 +140,31 @@ public class JobManagement {
 
     // 接收slave发送的任务完成情况
     public void get_complement_info(String job_id){
-        log.info("-------------- job_id: "+ job_id + " complete" +" --------------");
-        Job job = index_map.get(job_id);
+        log.info("-------------- job_id: "+ job_id + " 任务完成" +" --------------");
+        Job job = index_map_processing.get(job_id);
 
-        processing.remove(job);
-        index_map.remove(job_id);
+        remove_job_from_processing(job);
 
-        log.info("-------------- job_id: "+ job_id + " remove from processing list" +" --------------");
+        log.info("-------------- job_id: "+ job_id + "从待处理中移除" +" --------------");
+    }
+
+    // 将对应的node的job从等待结果的列表中移除，重新加入待处理列表
+    public void remove_jobs_from_job_list(Node node){
+
+        while(!node.is_processing_job_id_list_empty()){
+            String job_id = String.valueOf(node.processing_job_id_list.getFirst());
+
+            Job job = index_map_processing.get(job_id);
+
+            remove_job_from_processing(job);
+        }
+    }
+
+    // 重新将job添加到待处理列表中
+    public void re_distribute_jobs(LinkedList<String> job_ids) {
+        for(String id : job_ids) {
+            Job job = index_map_processing.get(id);
+            jobs.add(job);
+        }
     }
 }

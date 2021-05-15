@@ -1,5 +1,11 @@
 package com.example.demo.rules.master.Nodes;
 
+import lombok.Data;
+import net.bytebuddy.dynamic.scaffold.MethodGraph;
+
+import java.util.LinkedList;
+
+@Data
 public class Node {
     public static final int ACTIVE = 0;
     public static final int DIED = 1;
@@ -11,6 +17,8 @@ public class Node {
     public int status = ACTIVE;
 
     public int work_status = FREE;
+
+    public LinkedList<String> processing_job_id_list = new LinkedList<>();
 
     public Node(String machine_id){
         this.machine_id = machine_id;
@@ -24,19 +32,15 @@ public class Node {
         this.machine_id = machine_id;
     }
 
-    public int getStatus() {
-        return status;
+    public void add_processing_job_id(String id){
+        this.processing_job_id_list.add(id);
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    public void remove_processing_job_id(String id){
+        this.processing_job_id_list.remove(id);
     }
 
-    public int getWork_status() {
-        return work_status;
-    }
-
-    public void setWork_status(int work_status) {
-        this.work_status = work_status;
+    public boolean is_processing_job_id_list_empty(){
+        return processing_job_id_list.isEmpty();
     }
 }

@@ -2,6 +2,9 @@ package com.example.demo.rules.slave.Job;
 
 import com.example.demo.rules.slave.Spider.Spider;
 import com.example.demo.rules.slave.Spider.SpiderContent;
+import com.example.demo.utils.kafka.Producer;
+import lombok.extern.slf4j.Slf4j;
+import net.bytebuddy.asm.Advice;
 import net.bytebuddy.dynamic.scaffold.MethodGraph;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -12,9 +15,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Component
+@Slf4j
 public class JobHandler {
     @Autowired
     Spider spider;
+
+    @Autowired
+    Producer producer;
+
 
     //未完成队列
     public static LinkedList<Job> un_processed = new LinkedList();
@@ -33,6 +41,13 @@ public class JobHandler {
 
     //接收master发送的任务
     public void get_job_from_master(Job job){
-        un_processed.add(job);
+        //un_processed.add(job);
+
+    }
+
+    public void compelete_job(Job done){
+        producer.send("job_master", String.valueOf(done.id));
+
+        log.info(" =============================== 任务完成：" + String.valueOf(done.id) +" =============================== ");
     }
 }

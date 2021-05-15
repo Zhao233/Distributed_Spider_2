@@ -1,7 +1,7 @@
 package com.example.demo.rules.master.Job;
 
 public class Job {
-    public long id;
+    public String id;
 
     //爬虫爬取的范围
     public int start;
