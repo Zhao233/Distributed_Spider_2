@@ -1,5 +1,6 @@
 package com.example.demo.utils.zookeeper.lock.Imp;
 
+import com.example.demo.rules.Rules;
 import com.example.demo.utils.zookeeper.ZookeeperConfig;
 import com.example.demo.utils.zookeeper.lock.DistributedLock;
 import org.apache.zookeeper.*;
@@ -36,10 +37,10 @@ public class BaseDistributedLock implements DistributedLock {
          try {
              Thread.sleep(300);
              // 创建临时子节点
-             String myNode = zkClient.create(lockerNodePath + "/" + ZookeeperConfig.machine_id , data, ZooDefs.Ids.OPEN_ACL_UNSAFE,
+             String myNode = zkClient.create(lockerNodePath + "/" + Rules.MACHINE_ID , data, ZooDefs.Ids.OPEN_ACL_UNSAFE,
                         CreateMode.EPHEMERAL_SEQUENTIAL);
 
-             System.out.println(ZookeeperConfig.machine_id + ": " + "created");
+             System.out.println(Rules.MACHINE_ID + ": " + "created");
 
                 // 取出所有子节点
              List<String> subNodes = zkClient.getChildren(lockerNodePath, false);
@@ -54,7 +55,7 @@ public class BaseDistributedLock implements DistributedLock {
 
              if (myNode.equals( smallNode )) {
                     // 如果是最小的节点,则表示取得锁
-                 System.out.println(ZookeeperConfig.machine_id + ": " + "get lock");
+                 System.out.println(Rules.MACHINE_ID + ": " + "get lock");
                  this.nodeId.set(myNode);
                  return;
              }
@@ -64,7 +65,7 @@ public class BaseDistributedLock implements DistributedLock {
 
              // 判断比自己小一个数的节点是否存在,如果不存在则无需等待锁,同时注册监听
              if (stat != null) {
-                 System.out.println("machine_id: " + ZookeeperConfig.machine_id +
+                 System.out.println("machine_id: " + Rules.MACHINE_ID +
                             " waiting for " + preNode + " released lock");
 
                  latch.await();// 等待，这里应该一直等待其他线程释放锁
@@ -84,7 +85,7 @@ public class BaseDistributedLock implements DistributedLock {
     @Override
     public void release() throws Exception {
         try {
-            System.out.println("machined_id: " + ZookeeperConfig.machine_id + " unlock ");
+            System.out.println("machined_id: " + Rules.MACHINE_ID + " unlock ");
             if (null != nodeId) {
                 zkClient.delete(nodeId.get(), -1);
             }

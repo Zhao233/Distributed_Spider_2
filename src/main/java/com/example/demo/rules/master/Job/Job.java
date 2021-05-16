@@ -8,7 +8,7 @@ public class Job {
     public int end;
 
     //分配任务的机器的id
-    public int machine_id;
+    public String machine_id;
 
     public static final int STATUS_UNALLOCATED = 1;
     public static final int STATUS_RUNNING = 1;
@@ -17,7 +17,7 @@ public class Job {
     //当前任务的状态
     public int status;
 
-    public Job(int start, int end, int machine_id, int status){
+    public Job(int start, int end, String machine_id, int status){
         this.start = start;
         this.end = end;
         this.machine_id = machine_id;

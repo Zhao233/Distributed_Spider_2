@@ -33,8 +33,7 @@ public class Rules {
     public static int current_rule = 3;
     public String current_path = "";
 
-    @Value("${machine_id}")
-    public String machine_id;
+    public static String MACHINE_ID;
 
     @Value("${zookeeper.nodes_path}")
     public String nodes_path;
@@ -60,9 +59,9 @@ public class Rules {
             exit(-1);
         }
 
-        current_path = zkClient.create(nodes_path+"/"+machine_id, machine_id.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        current_path = zkClient.create(nodes_path+"/"+MACHINE_ID, MACHINE_ID.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
 
-        System.out.println("register to nodes, machine_id: "+machine_id);
+        System.out.println("register to nodes, machine_id: "+MACHINE_ID);
 
         try {
             elect_leader();
@@ -89,10 +88,10 @@ public class Rules {
         if (is_master_exist()){
             changeRule(RUlE_SALVE);
         } else {
-            zkClient.create(master_path+"/"+machine_id, machine_id.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+            zkClient.create(master_path+"/"+MACHINE_ID, MACHINE_ID.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
 
             //将自己从slaves中删去
-            zkClient.delete(nodes_path+"/"+machine_id,-1);
+            zkClient.delete(nodes_path+"/"+MACHINE_ID,-1);
 
             changeRule(RUlE_MASTER);
         }
@@ -108,7 +107,7 @@ public class Rules {
                 break;
 
             case RUlE_SALVE:
-                zkClient.setData(nodes_path+"/"+machine_id, "slave".getBytes(),-1);
+                zkClient.setData(nodes_path+"/"+MACHINE_ID, "slave".getBytes(),-1);
                 break;
         }
     }

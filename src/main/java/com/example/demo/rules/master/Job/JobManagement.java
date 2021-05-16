@@ -7,16 +7,19 @@ import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
 public class JobManagement {
     @Autowired
+    @Lazy
     NodeManagement nodeManagement;
 
     @Autowired
@@ -31,8 +34,13 @@ public class JobManagement {
     //处理列表
     public static LinkedList<Job> processing = new LinkedList<>();
 
+    //已完成
+    public static LinkedList<Job> done = new LinkedList<>();
+
     // job_id 与 job的映射关系
     public static HashMap<String, Job> index_map_processing = new HashMap<String, Job>();
+
+    public static ReentrantLock takeLock_job = new ReentrantLock();
 
     public void add_job_to_processing(Job job, Node node){
         processing.add(job);
@@ -48,8 +56,14 @@ public class JobManagement {
         index_map_processing.remove(job.id );
 
         //移除对应节点保存的待处理的列表
-        Node node = NodeManagement.nodes_index_map.get( job.machine_id );
+        Node node = nodeManagement.get_node_by_machine_id( job.machine_id );
         node.remove_processing_job_id(job.id);
+    }
+
+    public void complete_job(Job job){
+        remove_job_from_processing(job);
+
+        done.add(job);
     }
 
     //在任务开始时，将需要处理的任务的index范围加到待处理列表中
@@ -60,7 +74,7 @@ public class JobManagement {
 
         while(end <= index_end){
             if( end % 10 == 0 || end >= index_end ){
-                Job job = new Job(start, end, -1, Job.STATUS_UNALLOCATED);
+                Job job = new Job(start, end, "", Job.STATUS_UNALLOCATED);
                 job.id = String.valueOf(jobIdGenerator.getGeneratID());
 
                 jobs.add(job);
@@ -100,7 +114,7 @@ public class JobManagement {
 
             if( distribute_job_to_machine(job, node) ){
                 // removeable
-                Thread.sleep(2000);
+                Thread.sleep(1000);
 
                 log.info("-------------- " + "distribute job to machine: "+ node.machine_id + "-------------- ");
 
@@ -118,7 +132,7 @@ public class JobManagement {
         Gson gson = new Gson();
 
         // 将处理结点的id赋予job
-        job.machine_id = Integer.parseInt(node.getMachine_id());
+        job.machine_id = node.getMachine_id();
 
         String string_job = gson.toJson(job);
 
@@ -143,9 +157,14 @@ public class JobManagement {
         log.info("-------------- job_id: "+ job_id + " 任务完成" +" --------------");
         Job job = index_map_processing.get(job_id);
 
-        remove_job_from_processing(job);
+        if(job != null){
+            complete_job(job);
+            log.info("-------------- job_id: "+ job_id + "从待处理中移除" +" --------------");
 
-        log.info("-------------- job_id: "+ job_id + "从待处理中移除" +" --------------");
+            return;
+        }
+
+        log.info("-------------- 历史数据 job_id: "+ job_id + "从待处理中移除" +" --------------");
     }
 
     // 将对应的node的job从等待结果的列表中移除，重新加入待处理列表
@@ -157,6 +176,8 @@ public class JobManagement {
             Job job = index_map_processing.get(job_id);
 
             remove_job_from_processing(job);
+
+            log.info("-------------- 从等待结果序列中移除任务: " + job.id + "; machine_id: " + node.machine_id +" --------------");
         }
     }
 
@@ -165,6 +186,8 @@ public class JobManagement {
         for(String id : job_ids) {
             Job job = index_map_processing.get(id);
             jobs.add(job);
+
+            log.info("-------------- 任务重分配: " + job.id + " --------------");
         }
     }
 }

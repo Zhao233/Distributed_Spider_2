@@ -13,9 +13,6 @@ import java.util.concurrent.CountDownLatch;
 
 @Configuration
 public class ZookeeperConfig {
-    // 每台机器的id
-    public static int machine_id;
-
     private static final Logger logger = LoggerFactory.getLogger(ZookeeperConfig.class);
 
     @Value("${zookeeper.address}")
@@ -24,10 +21,7 @@ public class ZookeeperConfig {
     @Value("${zookeeper.timeout}")
     private  int timeout;
 
-    @Value("${machine_id}")
-    public void setMachineId(int id) {
-        ZookeeperConfig.machine_id = id;
-    }
+
 
     @Bean(name = "zkClient")
     public ZooKeeper zkClient() {
